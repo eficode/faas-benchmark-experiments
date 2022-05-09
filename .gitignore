@@ -26,6 +26,7 @@ secrets/
 *.terraform/
 *lambda.zip
 *.zip
+!lambda_layer.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
