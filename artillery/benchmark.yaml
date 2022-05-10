@@ -1,0 +1,18 @@
+---
+config:
+  target: https://pqryoku4z0.execute-api.eu-west-1.amazonaws.com
+  phases:
+    - duration: 3
+      arrivalRate: 1
+scenarios:
+  - name: Benchmark
+    flow:
+      - post:
+          url: /benchmark/i1-function1
+          capture:
+            json: $
+            as: body
+          headers:
+            x-api-key: LpxyhUxTgs6I9RqtwhSG4qPNhnNgX1t304coGXwb
+        # no idea why, but adding the newline makes the log output be on oneline instead of multiple
+      - log: "\n {{ body }}"
