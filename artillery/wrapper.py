@@ -1,11 +1,46 @@
+"""
+Methods to be used for wrapping around the artillery cli
+"""
 import json
-from subprocess import CompletedProcess
-from shell import shell
+import shlex
+from subprocess import run, PIPE, CompletedProcess, CalledProcessError
+
+
+def shell(cmd: str, context: str = None, env: dict = None) -> CompletedProcess:
+    """
+    cmd: the shell command to run
+    context: path to run command at, defaults to current directory
+    env: dict of environment variables to inject in the subprocess
+
+    run a shell command in a subprocess
+    """
+
+    # use shlex.split to split command string on spaces to a list of strings
+    cmd_list = shlex.split(cmd)
+
+    try:
+        # create the process, pipe stdout/stderr, output stdout/stderr as strings
+        # add 'check=True' to throw an exception on a non-zero exit code
+        if context is None:
+            proc = run(cmd_list, env=env, stdout=PIPE, text=True, check=False)
+        else:
+            proc = run(cmd_list, env=env, stdout=PIPE, cwd=context, text=True, check=False)
+    except (OSError, ValueError, CalledProcessError) as err:
+        print("---")
+        print(f"ERROR: Encountered an error executing the shell command: {cmd}")
+        print("---")
+        raise err
+
+    # return the completed process
+    return proc
 
 
 def parse_result_txt_json_file(filename: str) -> list:
+    """
+    read a messy stdout file from artillery logs and parse to a python dict
+    """
     # open file as read only
-    with open(filename, "r") as _file:
+    with open(filename, "r", encoding="utf-8") as _file:
         # read all lines in file into a list
         lines = _file.readlines()
         # new list for parsed JSON objects
@@ -21,15 +56,19 @@ def parse_result_txt_json_file(filename: str) -> list:
 
 
 def write_parsed_json_to_file(json_list: list, output_filename: str) -> None:
-    # write json output to a new file, allow to create the file if not exists
-    # will overwrite existing file with that filename
-    with open(output_filename, "w+") as _file:
+    """
+    write json output to a new file, allow to create the file if not exists
+    will overwrite existing file with that filename
+    """
+    with open(output_filename, "w+", encoding="utf-8") as _file:
         _file.write(json.dumps(json_list, indent=4))
 
 
 def write_subprocess_stdout_to_file(proc: CompletedProcess, filename: str) -> None:
-    """Write stdout of a completed process to a file"""
-    with open(filename, "w+") as _file:
+    """
+    Write stdout of a completed process to a file
+    """
+    with open(filename, "w+", encoding="utf-8") as _file:
         _file.write(proc.stdout)
 
 
